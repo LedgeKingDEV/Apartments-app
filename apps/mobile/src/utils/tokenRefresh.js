@@ -51,6 +51,36 @@ const attemptTokenRefresh = async () => {
       return null;
     }
 
+    // Firebase-backed Google accounts renew the Apartify API JWT with a fresh
+    // Firebase-verified ID token instead of storing a derived password.
+    if (user.firebaseUid) {
+      try {
+        const { firebaseAuth } = await import('../services/firebase');
+        if (firebaseAuth) await firebaseAuth.authStateReady();
+        const firebaseUser = firebaseAuth?.currentUser;
+        if (firebaseUser?.uid === user.firebaseUid) {
+          const idToken = await firebaseUser.getIdToken(true);
+          const response = await fetch(`${API_CONFIG.BASE_URL}/api/auth/firebase`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken }),
+          });
+          if (response.ok) {
+            const data = await response.json();
+            const newToken = data.token || data.data?.token;
+            if (newToken) {
+              logger.log('Firebase API token renewed through Firebase Authentication');
+              refreshFailureCount = 0;
+              return newToken;
+            }
+          }
+          logger.warn(`Firebase API token renewal returned ${response.status}`);
+        }
+      } catch (firebaseRefreshError) {
+        logger.warn('Firebase API token renewal failed; trying the standard refresh flow:', firebaseRefreshError);
+      }
+    }
+
     const currentToken = user.token || user.accessToken;
     
     // Method 1: Try to call a refresh endpoint if it exists

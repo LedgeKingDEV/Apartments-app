@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, ActivityIndicator, AppState } from 'react-native';
+import { View, ActivityIndicator, AppState, Alert, Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 // Notifications are optional - may not work in Expo Go
@@ -18,6 +18,7 @@ import ResetPasswordScreen from './src/screens/ResetPasswordScreen';
 import MainTabNavigator from './src/navigation/MainTabNavigator';
 import { initializeSync } from './src/services/listingSyncService';
 import { logger } from './src/utils/logger';
+import { AlertCardHost, showAlertCard } from './src/components/AlertCard';
 
 const Stack = createStackNavigator();
 
@@ -203,9 +204,16 @@ function AppContent() {
 }
 
 export default function App() {
+  if (Platform.OS === 'web') {
+    Alert.alert = showAlertCard;
+  }
+
   return (
     <AuthProvider>
-      <AppContent />
+      <>
+        <AppContent />
+        <AlertCardHost />
+      </>
     </AuthProvider>
   );
 }

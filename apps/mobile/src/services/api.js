@@ -40,7 +40,7 @@ const getAuthToken = async (skipRefresh = false) => {
 
 // Base API request function
 const apiRequest = async (endpoint, options = {}, retryCount = 0) => {
-  const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/auth/register');
+  const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/auth/register') || endpoint.includes('/auth/firebase');
   const isPaymentEndpoint = endpoint.includes('/payments/');
   const isWalletEndpoint = endpoint.includes('/wallet/');
   

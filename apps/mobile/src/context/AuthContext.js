@@ -189,6 +189,9 @@ export const AuthProvider = ({ children }) => {
 
   const signOut = async () => {
     try {
+      const { signOutFirebase } = await import('../services/firebaseGoogleAuth');
+      await signOutFirebase();
+
       // Call authService logout which handles backend notification
       // This clears local session but keeps backend account intact
       await authService.logout();

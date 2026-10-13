@@ -168,6 +168,23 @@ public class ListingServiceImpl implements ListingService {
 
     @Override
     public Page<ListingResponse> getAllListings(ListingFilterRequest filter, Pageable pageable, Long since, User currentUser) {
+        return findListings(filter, null, pageable, since, currentUser);
+    }
+
+    @Override
+    public Page<ListingResponse> searchListings(ListingFilterRequest filter, String query, Pageable pageable, User currentUser) {
+        return findListings(filter, query, pageable, null, currentUser);
+    }
+
+    @Override
+    public List<ListingResponse> getListingsForHost(User host) {
+        return listingRepository.findByHostId(host.getId()).stream()
+                .map(listing -> toResponse(listing,
+                        favoriteRepository.existsByUserIdAndListingId(host.getId(), listing.getId())))
+                .toList();
+    }
+
+    private Page<ListingResponse> findListings(ListingFilterRequest filter, String query, Pageable pageable, Long since, User currentUser) {
         ListingFilterRequest criteria = filter == null ? new ListingFilterRequest(null, null, null, null, null, null) : filter;
         validateDateRange(criteria.startDate(), criteria.endDate());
         validatePriceRange(criteria.minPrice(), criteria.maxPrice());
@@ -181,7 +198,7 @@ public class ListingServiceImpl implements ListingService {
                 criteria.startDate(),
                 criteria.endDate(),
                 since
-        );
+        ).and(ListingSpecifications.matchingQuery(query));
 
         final Set<Long> favoriteIds;
         if (currentUser != null) {

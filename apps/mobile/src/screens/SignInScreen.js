@@ -16,6 +16,7 @@ import { useAuth } from '../hooks/useAuth';
 import * as Google from 'expo-auth-session/providers/google';
 import { useNavigation } from '@react-navigation/native';
 import { authService } from '../services/authService';
+import { signInWithGoogle } from '../services/firebaseGoogleAuth';
 import { GOOGLE_AUTH, isGoogleConfigured } from '../constants/googleAuth';
 
 let AppleAuthentication;
@@ -54,11 +55,10 @@ export default function SignInScreen() {
             return;
           }
 
-          // Authenticate with backend using the Google access token
-          const result = await authService.loginWithGoogle(accessToken);
+          // Authenticate with Firebase, then exchange its verified ID token for an API session.
+          const result = await signInWithGoogle(accessToken);
 
-          // Sign in existing user (not new user) - pass isNewUser=false
-          // This ensures existing users don't see the welcome deal
+          // The API determines whether this is the user's first Apartify account.
           await signIn(result.user, result.isNewUser);
           navigation.replace('Main');
         } catch (error) {

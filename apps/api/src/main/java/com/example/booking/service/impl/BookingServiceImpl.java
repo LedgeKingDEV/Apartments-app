@@ -17,8 +17,11 @@ import com.example.booking.util.SecurityUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -40,20 +43,28 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public BookingResponse createBooking(BookingRequest request, User user) {
-        Listing listing = listingRepository.findById(request.getListingId())
+        Listing listing = listingRepository.findByIdForBooking(request.getListingId())
                 .orElseThrow(() -> new ResourceNotFoundException("Listing not found with ID: " + request.getListingId() + 
                         ". The listing may have been deleted or the ID may be incorrect."));
 
         validateDates(request.getStartDate(), request.getEndDate());
         validateAvailability(listing.getId(), request.getStartDate(), request.getEndDate());
 
+        long nights = ChronoUnit.DAYS.between(request.getStartDate(), request.getEndDate());
+        BigDecimal dailyPrice = listing.getPrice();
+        if (dailyPrice == null || dailyPrice.signum() <= 0) {
+            throw new BadRequestException("This listing does not have a valid nightly price and cannot be booked.");
+        }
+        BigDecimal calculatedTotal = dailyPrice.multiply(BigDecimal.valueOf(nights));
+
         Booking booking = Booking.builder()
                 .user(user)
                 .listing(listing)
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
-                .totalPrice(request.getTotalPrice())
+                .totalPrice(calculatedTotal)
                 .build();
 
         return toResponse(bookingRepository.save(booking));

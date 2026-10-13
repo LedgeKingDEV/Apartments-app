@@ -4,6 +4,9 @@ import com.example.booking.entity.AdminUser;
 import com.example.booking.entity.User;
 import com.example.booking.repository.AdminUserRepository;
 import com.example.booking.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -11,9 +14,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class DataSeeder implements CommandLineRunner {
 
+    private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
+
     private final AdminUserRepository adminUserRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${app.seed-default-data:false}")
+    private boolean seedDefaultData;
 
     public DataSeeder(AdminUserRepository adminUserRepository,
                       UserRepository userRepository,
@@ -25,14 +33,13 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        if (!seedDefaultData) {
+            log.info("Skipping default data seeding (app.seed-default-data=false).");
+            return;
+        }
+
         adminUserRepository.findByEmail("admin@example.com").ifPresentOrElse(
-            admin -> {
-                if (!passwordEncoder.matches("admin123", admin.getPassword())) {
-                    admin.setPassword(passwordEncoder.encode("admin123"));
-                    adminUserRepository.save(admin);
-                    System.out.println("✅ Default admin password reset: admin@example.com / admin123");
-                }
-            },
+            admin -> log.info("Default admin account already exists."),
             () -> {
                 AdminUser admin = AdminUser.builder()
                         .name("Admin User")
@@ -43,7 +50,7 @@ public class DataSeeder implements CommandLineRunner {
                         .status(AdminUser.Status.ACTIVE)
                         .build();
                 adminUserRepository.save(admin);
-                System.out.println("✅ Default admin user created: admin@example.com / admin123");
+                log.info("Created default admin account.");
             }
         );
 
@@ -53,13 +60,7 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedRegularUser(String name, String email, String rawPassword, User.Role role) {
         userRepository.findByEmail(email).ifPresentOrElse(
-            user -> {
-                if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
-                    user.setPassword(passwordEncoder.encode(rawPassword));
-                    userRepository.save(user);
-                    System.out.println("✅ Test user password reset: " + email);
-                }
-            },
+            user -> log.info("Test user already exists: {}", email),
             () -> {
                 User user = User.builder()
                         .name(name)
@@ -69,7 +70,7 @@ public class DataSeeder implements CommandLineRunner {
                         .kycLevel(User.KycLevel.UNVERIFIED)
                         .build();
                 userRepository.save(user);
-                System.out.println("✅ Test user created: " + email + " / " + rawPassword);
+                log.info("Created test user: {}", email);
             }
         );
     }

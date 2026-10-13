@@ -25,6 +25,17 @@ public class JwtService {
                       @Value("${spring.security.jwt.expiration}") long expiration) {
         this.secret = secret;
         this.expiration = expiration;
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("JWT_SECRET must be configured with a strong signing key.");
+        }
+        try {
+            // Validate at startup so a missing or weak key cannot leave the API running
+            // until the first login/token operation.
+            getSigningKey();
+        } catch (RuntimeException e) {
+            throw new IllegalStateException(
+                    "JWT_SECRET must decode to at least 32 bytes (or be a UTF-8 key of at least 32 bytes).", e);
+        }
     }
 
     public String generateToken(User user) {

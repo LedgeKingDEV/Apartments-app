@@ -17,6 +17,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+
 @RestController
 @RequestMapping("/api/admin/auth")
 @Tag(name = "Admin Auth", description = "Admin authentication endpoints")
@@ -29,6 +32,9 @@ public class AdminAuthController {
 
     @Value("${admin.allowed-email-domain:apartify.com}")
     private String allowedEmailDomain;
+
+    @Value("${admin.bootstrap.token:}")
+    private String bootstrapToken;
 
     public AdminAuthController(AdminUserService adminUserService,
                                AdminUserRepository adminUserRepository,
@@ -57,13 +63,21 @@ public class AdminAuthController {
 
     @Operation(summary = "Bootstrap first super admin (only works when no admins exist)")
     @PostMapping("/bootstrap")
-    public ResponseEntity<AdminAuthResponse> bootstrap(@Valid @RequestBody AdminRegisterRequest request) {
+    public ResponseEntity<AdminAuthResponse> bootstrap(
+            @Valid @RequestBody AdminRegisterRequest request,
+            @RequestHeader(name = "X-Admin-Bootstrap-Token", required = false) String suppliedToken) {
+        if (bootstrapToken == null || bootstrapToken.isBlank() || suppliedToken == null
+                || !MessageDigest.isEqual(bootstrapToken.getBytes(StandardCharsets.UTF_8),
+                suppliedToken.getBytes(StandardCharsets.UTF_8))) {
+            throw new BadRequestException("Admin bootstrap is disabled or the bootstrap token is invalid.");
+        }
         if (adminUserRepository.count() > 0) {
             throw new BadRequestException("Admin accounts already exist. Use /api/admin/auth/register instead.");
         }
 
         String email = request.getEmail();
-        if (email == null || !email.endsWith("@" + allowedEmailDomain)) {
+        if (email == null || !email.toLowerCase(java.util.Locale.ROOT)
+                .endsWith("@" + allowedEmailDomain.toLowerCase(java.util.Locale.ROOT))) {
             throw new BadRequestException("Bootstrap email must be a @" + allowedEmailDomain + " address.");
         }
 

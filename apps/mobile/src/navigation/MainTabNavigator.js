@@ -222,15 +222,17 @@ function RequireLoginScreen({ navigation, screenName, children }) {
     if (!user && !hasNavigated.current) {
       hasNavigated.current = true;
       if (Platform.OS === 'web') {
-        const confirmed = window.confirm('Sign In Required\n\nPlease sign in to access this feature.');
-        if (confirmed) {
+        Alert.alert('Sign In Required', 'Please sign in to access this feature.', [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Sign In', onPress: () => {
           const parent = navigation.getParent();
           if (parent) {
             parent.navigate('SignIn');
           } else {
             navigation.navigate('SignIn');
           }
-        }
+          } },
+        ]);
       } else {
         Alert.alert(
           'Sign In Required',
@@ -300,15 +302,7 @@ export default function MainTabNavigator() {
   
   // Helper function for alerts that works on web
   const showAlert = (title, message, buttons) => {
-    if (Platform.OS === 'web') {
-      // On web, use window.confirm or a custom modal
-      const confirmed = window.confirm(`${title}\n\n${message}`);
-      if (confirmed && buttons && buttons.length > 1 && buttons[1].onPress) {
-        buttons[1].onPress();
-      }
-    } else {
-      Alert.alert(title, message, buttons);
-    }
+    Alert.alert(title, message, buttons);
   };
   
   return (

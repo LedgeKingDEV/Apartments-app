@@ -15,6 +15,8 @@ import org.springframework.web.client.RestTemplate;
 
 import jakarta.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -246,14 +248,19 @@ public class FlutterwaveService {
         // Verify webhook hash for security
         String receivedHash = headers.getFirst(WEBHOOK_SECRET_HASH_HEADER);
         if (encryptionKey == null || encryptionKey.trim().isEmpty()) {
-            log.warn("Flutterwave encryption key not configured. Skipping webhook hash verification.");
+            log.error("Flutterwave webhook rejected: encryption key is not configured.");
+            return WebhookResult.builder()
+                    .success(false)
+                    .message("Webhook verification is not configured")
+                    .build();
         } else if (receivedHash == null || receivedHash.trim().isEmpty()) {
             log.error("Webhook hash verification failed: Missing verif-hash header");
             return WebhookResult.builder()
                     .success(false)
                     .message("Webhook hash verification failed: Missing verification header")
                     .build();
-        } else if (!receivedHash.equals(encryptionKey)) {
+        } else if (!MessageDigest.isEqual(receivedHash.trim().getBytes(StandardCharsets.UTF_8),
+                encryptionKey.trim().getBytes(StandardCharsets.UTF_8))) {
             log.error("Webhook hash verification failed. Received hash does not match encryption key.");
             return WebhookResult.builder()
                     .success(false)

@@ -4,6 +4,7 @@ import com.example.booking.entity.Booking;
 import com.example.booking.entity.Listing;
 import com.example.booking.model.Amenity;
 import jakarta.persistence.criteria.Subquery;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
@@ -94,5 +95,17 @@ public final class ListingSpecifications {
         }
 
         return spec;
+    }
+
+    public static Specification<Listing> matchingQuery(String searchQuery) {
+        if (searchQuery == null || searchQuery.isBlank()) {
+            return Specification.where(null);
+        }
+        String pattern = "%" + searchQuery.trim().toLowerCase() + "%";
+        return (root, query, cb) -> {
+            Predicate title = cb.like(cb.lower(root.get("title")), pattern);
+            Predicate description = cb.like(cb.lower(root.get("description")), pattern);
+            return cb.or(title, description);
+        };
     }
 }

@@ -17,6 +17,8 @@ public interface ListingService {
     void deleteListing(Long id, User host);
     ListingResponse getListing(Long id, User currentUser);
     Page<ListingResponse> getAllListings(ListingFilterRequest filter, Pageable pageable, Long since, User currentUser);
+    Page<ListingResponse> searchListings(ListingFilterRequest filter, String query, Pageable pageable, User currentUser);
+    List<ListingResponse> getListingsForHost(User host);
     Set<String> addPhotos(Long listingId, User host, List<MultipartFile> files);
     void removePhoto(Long listingId, Long photoId, User host);
 }

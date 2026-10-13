@@ -48,6 +48,7 @@ public class ListingController {
             @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required")
     })
     @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ListingResponse> createListing(@Valid @RequestBody ListingRequest request,
                                                          @AuthenticationPrincipal BookingUserDetails userDetails) {

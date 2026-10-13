@@ -119,33 +119,17 @@ export default function MyListingsScreen() {
   }, []);
 
   const handleDeleteListing = async (listingId, listingTitle) => {
-    // Browser-compatible confirmation
-    const confirmDelete = () => {
-      if (Platform.OS === 'web') {
-        return window.confirm(`Delete Listing\n\nAre you sure you want to delete "${listingTitle}"? This action cannot be undone.`);
-      } else {
-        return new Promise((resolve) => {
-          Alert.alert(
-            'Delete Listing',
-            `Are you sure you want to delete "${listingTitle}"? This action cannot be undone.`,
-            [
-              { 
-                text: 'Cancel', 
-                style: 'cancel',
-                onPress: () => resolve(false)
-              },
-              {
-                text: 'Delete',
-                style: 'destructive',
-                onPress: () => resolve(true)
-              },
-            ]
-          );
-        });
-      }
-    };
-
-    const confirmed = await confirmDelete();
+    const confirmed = await new Promise((resolve) => {
+      Alert.alert(
+        'Delete Listing',
+        `Are you sure you want to delete "${listingTitle}"? This action cannot be undone.`,
+        [
+          { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+          { text: 'Delete', style: 'destructive', onPress: () => resolve(true) },
+        ],
+        { onDismiss: () => resolve(false) }
+      );
+    });
     if (!confirmed) {
       return; // User cancelled
     }
@@ -181,11 +165,7 @@ export default function MyListingsScreen() {
       await loadListings();
       
       // Show success message
-      if (Platform.OS === 'web') {
-        window.alert('Success\n\nListing deleted successfully');
-      } else {
-        Alert.alert('Success', 'Listing deleted successfully');
-      }
+      Alert.alert('Success', 'Listing deleted successfully');
     } catch (error) {
       logger.error('❌ Error deleting listing:', error);
       
@@ -194,11 +174,7 @@ export default function MyListingsScreen() {
       
       // Show error message
       const errorMessage = error.message || 'Failed to delete listing. Please try again.';
-      if (Platform.OS === 'web') {
-        window.alert(`Error\n\n${errorMessage}`);
-      } else {
-        Alert.alert('Error', errorMessage);
-      }
+      Alert.alert('Error', errorMessage);
     }
   };
 

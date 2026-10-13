@@ -23,7 +23,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Apartment Controller - Alias for ListingController
@@ -84,6 +83,7 @@ public class ApartmentController {
             @ApiResponse(responseCode = "401", description = "Unauthorized - authentication required")
     })
     @SecurityRequirement(name = "bearerAuth")
+    @PreAuthorize("hasRole('HOST') or hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ListingResponse> createApartment(
             @Valid @RequestBody ListingRequest request,
@@ -143,17 +143,7 @@ public class ApartmentController {
             return ResponseEntity.ok(List.of());
         }
         
-        // Get all listings and filter by current user (host)
-        Pageable pageable = Pageable.unpaged();
-        var allListings = listingService.getAllListings(null, pageable, null, userDetails.getUser());
-        
-        // Filter to only include listings owned by the current user
-        Long currentUserId = userDetails.getUser().getId();
-        List<ListingResponse> myListings = allListings.getContent().stream()
-                .filter(listing -> listing.hostId() != null && listing.hostId().equals(currentUserId))
-                .collect(Collectors.toList());
-        
-        return ResponseEntity.ok(myListings);
+        return ResponseEntity.ok(listingService.getListingsForHost(userDetails.getUser()));
     }
 
     @Operation(summary = "Search apartments", description = "Searches apartments with optional query and filters. Public endpoint.")
@@ -179,24 +169,8 @@ public class ApartmentController {
         );
         
         Pageable pageable = PageRequest.of(page, size);
-        var result = listingService.getAllListings(filter, pageable, null, userDetails != null ? userDetails.getUser() : null);
-        
-        // If query is provided, filter results by title/description containing query
-        if (query != null && !query.trim().isEmpty()) {
-            var filteredContent = result.getContent().stream()
-                    .filter(listing -> 
-                        (listing.title() != null && listing.title().toLowerCase().contains(query.toLowerCase())) ||
-                        (listing.description() != null && listing.description().toLowerCase().contains(query.toLowerCase()))
-                    )
-                    .collect(Collectors.toList());
-            
-            // Create a new page response with filtered content
-            return ResponseEntity.ok(PageResponse.from(
-                    new org.springframework.data.domain.PageImpl<>(filteredContent, pageable, filteredContent.size())
-            ));
-        }
-        
-        return ResponseEntity.ok(PageResponse.from(result));
+        return ResponseEntity.ok(PageResponse.from(listingService.searchListings(
+                filter, query, pageable, userDetails != null ? userDetails.getUser() : null)));
     }
 }
 

@@ -1,6 +1,7 @@
 package com.example.booking.dto.auth;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Value;
 
@@ -19,4 +20,12 @@ public class AuthResponse {
     
     @Schema(description = "User role (GUEST or HOST)", example = "GUEST", allowableValues = {"GUEST", "HOST", "ADMIN"})
     String role;
+
+    @Builder.Default
+    boolean isNewUser = false;
+
+    @JsonProperty("isNewUser")
+    public boolean isNewUser() {
+        return isNewUser;
+    }
 }

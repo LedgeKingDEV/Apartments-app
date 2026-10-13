@@ -50,7 +50,7 @@ const cors = require('cors');
 app.use(cors({
   origin: [
     'http://localhost:8081',
-    'http://localhost:3000',
+'http://localhost:3000',
     'https://your-production-domain.com'
   ],
   credentials: true,

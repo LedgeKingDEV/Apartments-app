@@ -218,11 +218,7 @@ export default function UploadListingScreen() {
           ? 'Listing updated locally. Changes will be synced when online.'
           : 'Listing updated successfully!';
 
-        if (Platform.OS === 'web') {
-          window.alert(`${successTitle}\n\n${successMessage}`);
-        } else {
-          Alert.alert(successTitle, successMessage);
-        }
+        Alert.alert(successTitle, successMessage);
       } else {
         // Save directly to API - makes listing available to all users immediately
         savedListing = await hybridApartmentService.createApartment(listingData);
@@ -239,11 +235,7 @@ export default function UploadListingScreen() {
           const warningMessage = 'Listing created successfully, but images were not stored by the backend.\n\n' +
             'Other users may not see images for this listing. This is a backend configuration issue.\n\n' +
             'Images are saved locally, so you can see them, but other users cannot.';
-          if (Platform.OS === 'web') {
-            window.alert('Warning\n\n' + warningMessage);
-          } else {
-            Alert.alert('Warning', warningMessage);
-          }
+          Alert.alert('Warning', warningMessage);
         } else {
           // Success
           const successTitle = isOffline ? 'Saved Locally' : 'Success';
@@ -251,11 +243,7 @@ export default function UploadListingScreen() {
             ? 'Listing saved locally. It will be visible to you immediately and synced when online.'
             : 'Listing created successfully and is now available to all users!';
 
-          if (Platform.OS === 'web') {
-            window.alert(`${successTitle}\n\n${successMessage}`);
-          } else {
-            Alert.alert(successTitle, successMessage);
-          }
+          Alert.alert(successTitle, successMessage);
         }
       }
       
@@ -317,11 +305,7 @@ export default function UploadListingScreen() {
         errorMessage = 'Unable to save listing. Please check your connection.';
       }
 
-      if (Platform.OS === 'web') {
-        window.alert(`Error\n\n${errorMessage}`);
-      } else {
-        Alert.alert('Error', errorMessage);
-      }
+      Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
     }

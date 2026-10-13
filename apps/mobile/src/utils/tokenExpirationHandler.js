@@ -22,95 +22,32 @@ export const handleTokenExpiration = async (errorMessage = 'Your authentication 
     console.warn('⚠️ Token expired, but user remains logged in:', errorMessage);
     console.warn('⚠️ User can continue using the app. They can sign out manually if needed.');
     
-    // Show a non-blocking notification instead of forcing logout
-    // User can continue using the app with local data
-    const isWeb = typeof window !== 'undefined';
-    
-    if (isWeb) {
-      // On web, show a visible alert using window.alert or create a modal
-      try {
-        // Try to use a more visible alert on web
-        const shouldSignOut = window.confirm(
-          'Your authentication token has expired.\n\n' +
-          'Some features may not work until you sign out and sign in again.\n\n' +
-          'Would you like to sign out now?'
-        );
-        
-        if (shouldSignOut) {
-          // User chose to sign out
-          try {
-            const { authService } = await import('../services/authService');
-            await authService.logout();
-            console.log('User chose to sign out after token expiration');
-            
-            // Clear user from AsyncStorage
-            const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
-            await AsyncStorage.removeItem('user');
-            
-            // Reload app to reset state
-            window.location.reload();
-          } catch (error) {
-            console.error('Error signing out:', error);
-            // Force reload even on error
-            window.location.reload();
-          }
-        } else {
-          // User chose to continue - show a less intrusive message
-          console.warn('Token expired. You can continue using the app. Sign out and sign in again to refresh your token.');
-        }
-      } catch (webError) {
-        // Fallback to console warning if window.confirm fails
-        console.warn('Token expired. You can continue using the app. Sign out and sign in again to refresh your token.');
-      }
-    } else {
-      // On native, show a non-blocking alert that doesn't force logout
-      try {
-        const { Alert } = await import('react-native');
-        Alert.alert(
-          'Session Expired',
-          'Your authentication token has expired. You can continue using the app, but some features may not work until you sign out and sign in again.\n\nWould you like to sign out now?',
-          [
-            {
-              text: 'Continue Using App',
-              style: 'cancel',
-              onPress: () => {
-                // User chooses to stay logged in - do nothing
-                console.log('User chose to continue using app despite expired token');
-              }
-            },
-            {
-              text: 'Sign Out',
-              style: 'destructive',
-              onPress: async () => {
-                // User explicitly chooses to sign out
-                try {
-                  // Import authService to handle logout
-                  const { authService } = await import('../services/authService');
-                  await authService.logout();
-                  console.log('User chose to sign out after token expiration');
-                  
-                  // Clear user from AsyncStorage and reload
-                  const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
-                  await AsyncStorage.removeItem('user');
-                  
-                  // Reload app to reset state
-                  if (typeof window !== 'undefined') {
-                    window.location.reload();
-                  }
-                } catch (error) {
-                  console.error('Error signing out:', error);
-                }
-              }
+    const { Alert } = await import('react-native');
+    Alert.alert(
+      'Session Expired',
+      'Your authentication token has expired. You can continue using the app, but some features may not work until you sign out and sign in again.\n\nWould you like to sign out now?',
+      [
+        { text: 'Continue Using App', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const { authService } = await import('../services/authService');
+              await authService.logout();
+              const { signOutFirebase } = await import('../services/firebaseGoogleAuth');
+              await signOutFirebase();
+              const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+              await AsyncStorage.removeItem('user');
+              if (typeof window !== 'undefined') window.location.reload();
+            } catch (error) {
+              console.error('Error signing out:', error);
             }
-          ],
-          { cancelable: true }
-        );
-      } catch (importError) {
-        console.error('Error importing Alert:', importError);
-        // Fallback: just log the warning
-        console.warn('Token expired:', errorMessage);
-      }
-    }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   } catch (error) {
     console.error('Error handling token expiration:', error);
   } finally {

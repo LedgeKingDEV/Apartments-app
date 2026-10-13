@@ -24,7 +24,8 @@ public class BookingRequest {
     @Schema(description = "Check-out date", example = "2024-02-20")
     private LocalDate endDate;
 
-    @NotNull
-    @Schema(description = "Total price for the booking period", example = "750.00")
+    // Kept for compatibility with older clients. The backend ignores this value and
+    // calculates the total from the listing's current daily price and date range.
+    @Schema(description = "Deprecated client-supplied total; ignored by the backend", example = "750.00", accessMode = Schema.AccessMode.READ_ONLY)
     private BigDecimal totalPrice;
 }

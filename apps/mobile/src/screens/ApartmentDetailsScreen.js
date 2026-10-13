@@ -315,14 +315,14 @@ export default function ApartmentDetailsScreen() {
   const handleCheckInDayPress = async (day) => {
     // Check if the selected date is unavailable
     if (unavailableDates[day.dateString]?.disabled) {
-      alert('Unavailable - choose another date please');
+      Alert.alert('Unavailable', 'Choose another date please');
       setDateConflictError('The selected check-in date is unavailable');
       return;
     }
     
     // Validate that check-in date is before check-out date (if check-out is already selected)
     if (checkOutDate && day.dateString >= checkOutDate) {
-      alert('Check-in date must be before check-out date');
+      Alert.alert('Invalid dates', 'Check-in date must be before check-out date');
       setDateConflictError('Check-in date must be before check-out date');
       return;
     }
@@ -343,13 +343,13 @@ export default function ApartmentDetailsScreen() {
 
   const handleCheckOutDayPress = async (day) => {
     if (checkInDate && day.dateString <= checkInDate) {
-      alert('Check-out date must be after check-in date');
+      Alert.alert('Invalid dates', 'Check-out date must be after check-in date');
       return;
     }
     
     // Check if the selected date is unavailable
     if (unavailableDates[day.dateString]?.disabled) {
-      alert('Unavailable - choose another date please');
+      Alert.alert('Unavailable', 'Choose another date please');
       setDateConflictError('The selected check-out date is unavailable');
       return;
     }
@@ -1350,7 +1350,7 @@ export default function ApartmentDetailsScreen() {
           style={styles.reserveButton} 
           onPress={async () => {
             if (!checkInDate || !checkOutDate) {
-              alert('Please select check-in and check-out dates');
+              Alert.alert('Dates required', 'Please select check-in and check-out dates');
               return;
             }
             
@@ -1358,7 +1358,7 @@ export default function ApartmentDetailsScreen() {
             const hasConflict = await checkDateConflict(checkInDate, checkOutDate);
             
             if (hasConflict) {
-              alert('Unavailable - choose another date please\n\nThis apartment is unavailable for the selected dates. Please choose another date.');
+              Alert.alert('Unavailable', 'This apartment is unavailable for the selected dates. Please choose another date.');
               return;
             }
             

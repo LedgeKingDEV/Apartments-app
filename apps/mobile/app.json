@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Nigerian Apartments",
+    "name": "Apartify",
     "slug": "nigerian-apartments-app",
     "version": "1.0.8",
     "orientation": "portrait",
@@ -17,7 +17,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.nigerianapartments.app",
       "buildNumber": "9",
-      "displayName": "Nigerian Apartments",
+      "displayName": "Apartify",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "The app accesses your photos to let you set your profile picture.",
         "NSCameraUsageDescription": "The app accesses your camera to let you take a profile picture.",
@@ -64,6 +64,6 @@
         "projectId": "2daf5ed9-4c43-4f7a-a6a8-ff18b325a97e"
       }
     },
-    "owner": "michaelkaysea"
+    "owner": "Ledge.Co"
   }
 }

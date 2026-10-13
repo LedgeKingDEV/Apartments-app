@@ -12,6 +12,7 @@ export const API_ENDPOINTS = {
   // Auth
   AUTH: {
     LOGIN: '/api/auth/login',
+    FIREBASE: '/api/auth/firebase',
     REGISTER: '/api/auth/register',
     PROFILE: '/api/auth/profile',
     ME: '/api/auth/me',

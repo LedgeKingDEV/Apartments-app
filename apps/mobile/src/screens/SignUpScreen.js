@@ -16,6 +16,7 @@ import { useAuth } from '../hooks/useAuth';
 import * as Google from 'expo-auth-session/providers/google';
 import { useNavigation } from '@react-navigation/native';
 import { authService } from '../services/authService';
+import { signInWithGoogle } from '../services/firebaseGoogleAuth';
 import { markWelcomeDealSeen } from '../utils/userStorage';
 import { logger } from '../utils/logger';
 import { GOOGLE_AUTH, isGoogleConfigured } from '../constants/googleAuth';
@@ -121,8 +122,8 @@ export default function SignUpScreen() {
             return;
           }
 
-          // Create or log in the backend account using the Google access token
-          const result = await authService.loginWithGoogle(accessToken);
+          // Firebase authenticates Google; the API creates or loads the Apartify account.
+          const result = await signInWithGoogle(accessToken);
           const userData = result.user;
 
           await signIn(userData, result.isNewUser);

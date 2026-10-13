@@ -2,6 +2,7 @@ package com.example.booking.controller;
 
 import com.example.booking.dto.auth.AuthResponse;
 import com.example.booking.dto.auth.ForgotPasswordRequest;
+import com.example.booking.dto.auth.FirebaseSignInRequest;
 import com.example.booking.dto.auth.LoginRequest;
 import com.example.booking.dto.auth.PasswordResetResponse;
 import com.example.booking.dto.auth.RegisterRequest;
@@ -9,6 +10,7 @@ import com.example.booking.dto.auth.ResetPasswordRequest;
 import com.example.booking.security.BookingUserDetails;
 import com.example.booking.security.JwtService;
 import com.example.booking.service.AuthService;
+import com.example.booking.service.FirebaseGoogleAuthService;
 import com.example.booking.service.PasswordResetService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -35,11 +37,14 @@ public class AuthController {
     private final AuthService authService;
     private final PasswordResetService passwordResetService;
     private final JwtService jwtService;
+    private final FirebaseGoogleAuthService firebaseGoogleAuthService;
 
-    public AuthController(AuthService authService, PasswordResetService passwordResetService, JwtService jwtService) {
+    public AuthController(AuthService authService, PasswordResetService passwordResetService, JwtService jwtService,
+                          FirebaseGoogleAuthService firebaseGoogleAuthService) {
         this.authService = authService;
         this.passwordResetService = passwordResetService;
         this.jwtService = jwtService;
+        this.firebaseGoogleAuthService = firebaseGoogleAuthService;
     }
 
     @Operation(summary = "Register a new user", 
@@ -64,6 +69,12 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    @Operation(summary = "Sign in with Google through Firebase")
+    @PostMapping("/firebase")
+    public ResponseEntity<AuthResponse> signInWithFirebase(@Valid @RequestBody FirebaseSignInRequest request) {
+        return ResponseEntity.ok(firebaseGoogleAuthService.signInWithGoogle(request.getIdToken()));
     }
 
     @Operation(summary = "Request password reset", 

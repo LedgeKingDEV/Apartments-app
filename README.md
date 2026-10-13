@@ -71,6 +71,10 @@ Flags are graded by severity (Low → Medium → High → Critical) and can be r
 
 ## Getting Started
 
+### Firebase setup
+
+Firebase Google sign-in and Firestore profile setup instructions are in [docs/firebase/FIREBASE_SETUP.md](docs/firebase/FIREBASE_SETUP.md). PostgreSQL remains the database for Apartify business records.
+
 ### Prerequisites
 
 - Node.js (v14 or later)

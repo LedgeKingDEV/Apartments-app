@@ -117,62 +117,29 @@ export default function ProfileScreen() {
   );
 
   const handleSignOut = () => {
-    // On web, use window.confirm instead of Alert.alert for better compatibility
-    if (Platform.OS === 'web') {
-      const confirmed = window.confirm('Are you sure you want to sign out?');
-      if (!confirmed) {
-        return;
-      }
-      
-      // Sign out immediately on web
-      (async () => {
-        try {
-          await signOut();
-          
-          // Clear AsyncStorage explicitly before reload
-          try {
-            await AsyncStorage.removeItem('user');
-          } catch (e) {
-            // Ignore storage errors
-          }
-          
-          // Force reload after a brief delay to ensure state is cleared
-          setTimeout(() => {
-            window.location.reload();
-          }, 100);
-        } catch (error) {
-          // Force reload even on error
-          window.location.reload();
-        }
-      })();
-    } else {
-      // Native platforms use Alert.alert
-      Alert.alert(
-        'Sign Out',
-        'Are you sure you want to sign out?',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'Sign Out',
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                await signOut();
-              } catch (error) {
-                Alert.alert(
-                  'Sign Out',
-                  'There was an error signing out, but you have been logged out locally.',
-                  [{ text: 'OK' }]
-                );
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await signOut();
+              if (Platform.OS === 'web') {
+                try { await AsyncStorage.removeItem('user'); } catch (e) { /* ignore storage errors */ }
+                setTimeout(() => window.location.reload(), 100);
               }
-            },
+            } catch (error) {
+              if (Platform.OS === 'web') window.location.reload();
+              else Alert.alert('Sign Out', 'There was an error signing out, but you have been logged out locally.', [{ text: 'OK' }]);
+            }
           },
-        ]
-      );
-    }
+        },
+      ]
+    );
   };
 
   const handleDeleteAccount = async () => {
